@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 input = io.open(arg[1], "r")
 
 function parser (inputLine)
