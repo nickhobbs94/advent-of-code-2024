@@ -11,19 +11,15 @@ Y = {}
 for line in input:lines() do
   local x,y = parser(line)
   X[#X + 1] = x
-  Y[#Y + 1] = y
+  Y[y] = (Y[y] or 0) + 1
 end
 
-table.sort(X)
-table.sort(Y)
+score = 0
 
-distance = 0
-
-for i in pairs(X) do
-  local x = X[i]
-  local y = Y[i]
-  distance = distance + math.abs(x-y)
+for _, x in pairs(X) do
+  local y = Y[x] or 0
+  score = score + y * x
 end
 
-print(distance)
+print(score)
 
