@@ -4,7 +4,7 @@ input = io.open(arg[1], "r")
 directions = {"up", "down"}
 
 function setDir (currentDirection, prevN, nextN)
-  if (currentDirection ~= nil) then
+  if (currentDirection ~= nil or prevN == nil) then
     return currentDirection
   end
 
@@ -21,6 +21,7 @@ safecount = 0
 unsafecount = 0
 
 function valid(dir, prev, curr)
+  if (prev == nil) then return true end
   if (dir == "up" and prev > curr) then return false end
   if (dir == "down" and prev < curr) then return false end
   local delta = math.abs(prev - curr)
@@ -28,49 +29,61 @@ function valid(dir, prev, curr)
   return true
 end
 
-for line in input:lines() do
-  local prev = nil
-  local prev2 = nil
-  local dir = nil
-  local safe = true
-  local skipped = false
-
-  for s in line:gmatch("%d+") do
-    local n = tonumber(s)
-
-    if (prev2) then
-      local dir2 = setDir(dir, prev2, n)
-      dir = setDir(dir, prev2, prev)
-      dir = setDir(dir, prev, n)
-
-      -- prev2 -> prev
-      local goodPrev = valid(dir, prev2, prev)
-      -- prev -> n
-      local good = valid(dir, prev, n)
-      -- or
-      -- prev2 -> n
-      local goodSkip = valid(dir2, prev2, n)
-
-      if (not good) then
-        -- - 1 0
-        if (not skipped and goodPrev) then
-          skipped = true
-          prev = 
-        else
-          safe = false
-        end
-      end
-
+function skipEntry(tbl, skipI)
+  local result = {}
+  for i = 1, #tbl, 1 do
+    if (i ~= skipI) then
+      result[#result + 1] = tbl[i]
     end
+  end
+  return result
+end
 
-    prev2 = prev
+function printRow(row)
+  local result = ""
+  for i = 1, #row, 1 do
+    result = result .. tostring(row[i]) .. " "
+  end
+  return result
+end
+
+function safe(row)
+  local prev = nil
+  local dir = nil
+  local isSafe = true
+
+  for i = 1, #row, 1 do
+    local n = row[i]
+    dir = setDir(dir, prev, n)
+    if (not valid(dir, prev, n)) then
+      isSafe = false
+    end
     prev = n
   end
 
-  if (not prev2) then print("NOT ENOUGH") end
+  print(printRow(row), isSafe)
+  return isSafe
+end
 
-  --print(safe and "safe" or "unsafe")
-  if (safe) then
+
+for line in input:lines() do
+
+  local codes = {}
+  for s in line:gmatch("%d+") do
+    local n = tonumber(s)
+    codes[#codes + 1] = n
+  end
+
+  local isSafe = safe(codes)
+
+  if (not isSafe) then
+    for i=1, #codes, 1 do
+      isSafe = isSafe or safe(skipEntry(codes, i))
+    end
+  end
+
+  print(isSafe and "safe" or "unsafe")
+  if (isSafe) then
     safecount = safecount + 1
   else
     unsafecount = unsafecount + 1
