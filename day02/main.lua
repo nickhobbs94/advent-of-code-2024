@@ -74,16 +74,16 @@ for line in input:lines() do
     codes[#codes + 1] = n
   end
 
-  local isSafe = safe(codes)
+  local good = safe(codes)
 
-  if (not isSafe) then
+  if (not good) then
     for i=1, #codes, 1 do
-      isSafe = isSafe or safe(skipEntry(codes, i))
+      good = good or safe(skipEntry(codes, i))
     end
   end
 
-  print(isSafe and "safe" or "unsafe")
-  if (isSafe) then
+  print(good and "safe" or "unsafe")
+  if (good) then
     safecount = safecount + 1
   else
     unsafecount = unsafecount + 1
