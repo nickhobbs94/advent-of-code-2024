@@ -1,16 +1,12 @@
 #!/usr/bin/env lua
+local re = require"re"
 input = io.open(arg[1], "r")
 
 enabled = true
-mul = function (a,b) return tonumber(a)*tonumber(b) end
-
-instructions = {}
-instructions.mul = mul
-instructions["do"] = function () enabled = true end
-instructions["don't"] = function () enabled = false end
-
 total = 0
+
 function findNextInstruction(line, currentIndex)
+
   local nextDo, doend = line:find("do%(%)", currentIndex)
   local nextDont, dontend = line:find("don't%(%)", currentIndex)
   local nextMul, mulend, a, b = line:find("mul%((%d+),(%d+)%)", currentIndex)
