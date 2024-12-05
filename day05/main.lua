@@ -1,5 +1,8 @@
 local re = require"re"
 
+d1 = "real1.txt"
+d2 = "real2.txt"
+
 allrules = {}
 queues = {}
 
@@ -33,8 +36,7 @@ function valid(q, rules)
 end
 
 -- load rules
-f = "real1.txt"
-input = io.open(f, "r")
+input = io.open(d1, "r")
 for line in input:lines() do
   allrules[#allrules + 1] = parserule(line)
 end
@@ -90,47 +92,65 @@ function index(arr, e)
   return nil
 end
 
-function fixrule(new, r, rules)
-  print("fixrule", r.b, r.a)
-  new = remove(new, index(new,r.b))
-  new = remove(new, index(new,r.a))
-  for i=1,#new+1,1 do
-    print("lstart", printr(new))
-    new = insert(new, r.b, i)
-    for j=i+1,#new+1,1 do
-      print("inserting", r.a, j, printr(new))
-      new = insert(new, r.a, j)
-      print("loop", i,j, printr(new))
-      if valid(new, rules) then
-        printr("valid", printr(new))
-        return new
-      end
-      new = remove(new, index(new,r.a))
+function prints(set)
+  local s = "{"
+  for k,v in pairs(set or {}) do
+    if v then
+      s = s .. " " .. k
     end
-    print("try again")
-    new = remove(new, index(new,r.b))
   end
-  print("uh oh")
+  s = s .. " }"
+  return s
+end
+
+
+-- lookup what a number must be before
+ruletree = {}
+
+for _,r in ipairs(allrules) do
+  beforeNode = ruletree[r.b] or {before = {}, after = {}}
+  afterNode = ruletree[r.a] or {before = {}, after = {}}
+  beforeNode.before[r.a] = true
+  afterNode.after[r.b] = true
+  ruletree[r.b] = beforeNode
+  ruletree[r.a] = afterNode
+end
+
+function validInsert(arr, num, index, beforeNums, afterNums)
+  for k,v in ipairs(arr) do
+    if k < index then
+      if afterNums[v] then
+        return false
+      end
+    else
+      if beforeNums[v] then
+        return false
+      end
+    end
+  end
+  return true
 end
 
 function reorder(q, rules)
-  local new = q
-  local fixedrules = {}
-  print("reorder", printr(new))
-  while not valid(new, rules) do
-    local _, r = valid(new, rules)
-    print("fixrule", r.b, "before", r.a)
-    fixedrules[#fixedrules + 1] = r
-    new = fixrule(new, r, fixedrules)
-    print("fixed", printr(new))
+  local new = {}
+  for _,v in ipairs(q) do
+    local node = ruletree[v]
+    local bf = node and node.before or {}
+    local af = node and node.after or {}
+    local inserted = false
+    for i=1,#new+1,1 do
+      if not inserted and validInsert(new, v,i,bf,af) then
+        new = insert(new, v, i)
+        inserted = true
+      end
+    end
   end
+  print(printr(new))
   return new
 end
-  
 
 -- load queues
-f = "real2.txt"
-input = io.open(f, "r")
+input = io.open(d2, "r")
 
 total = 0
 
