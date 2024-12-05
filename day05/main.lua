@@ -1,5 +1,3 @@
-local re = require"re"
-
 d1 = "real1.txt"
 d2 = "real2.txt"
 
