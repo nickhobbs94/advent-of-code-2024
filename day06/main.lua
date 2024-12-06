@@ -1,6 +1,11 @@
 #!/usr/bin/env lua
 input = io.open(arg[1], "r")
 
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
+  os.execute("clear")
+end
+
 obstacles = {}
 guard = {}
 stomped = {}
@@ -42,6 +47,7 @@ function turn(dir)
 end
 
 function update()
+  stomped[k(guard.x, guard.y)] = true
   next = {x=guard.x, y=guard.y, dir=guard.dir}
   next.x = next.x + guard.dir[1]
   next.y = next.y + guard.dir[2]
@@ -58,9 +64,34 @@ function outmap(x,y)
   return x > width or x <= 0 or y > height or y <= 0
 end
 
+function printboard()
+  for y=1, height do
+    local s = ""
+    for x=1,width do
+      if obstacles[k(x,y)] then
+        s = s .. "#"
+      elseif guard.x == x and guard.y == y then
+        s = s .. "*"
+      elseif stomped[k(x,y)] then
+        s = s .. "X"
+      else
+        s = s .. "."
+      end
+    end
+    print(s)
+  end
+end
+
+
 while not outmap(guard.x, guard.y) do
   update()
   print(k(guard.x, guard.y))
+
+  local R = -1
+  if (guard.x > width - R or guard.x < R or guard.y > height - R or guard.y < R) then
+    sleep(1)
+    printboard()
+  end
 end
 
 count = 0
