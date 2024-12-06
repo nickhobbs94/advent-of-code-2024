@@ -9,9 +9,14 @@ end
 obstacles = {}
 guard = {}
 stomped = {}
+start = {}
 
 function k (x,y)
   return tostring(x) .. "," .. tostring(y)
+end
+
+function kstomped(state)
+  return tostring(state.x) .. "," .. tostring(state.y) .. ":" .. tostring(state.dir[1]) .. "," .. tostring(state.dir[2])
 end
 
 width = nil
@@ -47,17 +52,21 @@ function turn(dir)
 end
 
 function update()
-  stomped[k(guard.x, guard.y)] = true
   next = {x=guard.x, y=guard.y, dir=guard.dir}
   next.x = next.x + guard.dir[1]
   next.y = next.y + guard.dir[2]
   if obstacles[k(next.x, next.y)] then
-    print("HIT")
+    --print("HIT")
     guard.dir = turn(next.dir)
-    return
+    return false
   end
   guard = next
-  stomped[k(guard.x, guard.y)] = true
+  if stomped[kstomped(guard)] then
+    -- looping!
+    return true
+  end
+  stomped[kstomped(guard)] = true
+  return false
 end
   
 function outmap(x,y)
@@ -82,23 +91,34 @@ function printboard()
   end
 end
 
+function runsim()
+  looped = false
+  stomped = {}
+  stomped[kstomped(guard)] = true
+  while not outmap(guard.x, guard.y) and not looped do
+    looped = update()
+    --print(kstomped(guard))
 
-while not outmap(guard.x, guard.y) do
-  update()
-  print(k(guard.x, guard.y))
-
-  local R = -1
-  if (guard.x > width - R or guard.x < R or guard.y > height - R or guard.y < R) then
-    sleep(1)
-    printboard()
+    local R = -1
+    if (guard.x > width - R or guard.x < R or guard.y > height - R or guard.y < R) then
+      sleep(1)
+      printboard()
+    end
   end
+  return looped
 end
 
+start = {x=guard.x, y=guard.y, dir=guard.dir}
 count = 0
 for x=1,width do
   for y=1,height do
-    if stomped[k(x,y)] then
-      count = count + 1
+    print("sim", k(x,y))
+    if not obstacles[k(x,y)] and not (guard.x == x and guard.y == y) then
+      obstacles[k(x,y)] = true
+      local foundloop = runsim()
+      count = count + (foundloop and 1 or 0)
+      obstacles[k(x,y)] = false
+      guard = {x=start.x, y=start.y, dir=start.dir}
     end
   end
 end
