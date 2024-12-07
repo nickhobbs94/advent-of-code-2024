@@ -27,10 +27,16 @@ end
 
 function add(a,b) return a+b end
 function mul(a,b) return a*b end
+function concat(a,b)
+  astr = tostring(a)
+  bstr = tostring(b)
+  return tonumber(a..b)
+end
 
 ops = {}
 ops["+"] = add
 ops["*"] = mul
+ops["||"] = concat
 
 function check(equation, operations)
   total = 0
@@ -66,6 +72,9 @@ function incrementops(ops)
       done = true
       finished = true
     elseif ops[i] == "+" then
+      ops[i] = "||"
+      done = true
+    elseif ops[i] == "||" then
       ops[i] = "*"
       done = true
     elseif ops[i] == "*" then
