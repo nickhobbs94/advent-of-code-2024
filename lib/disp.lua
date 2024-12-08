@@ -14,5 +14,23 @@ function Disp.printtab (data)
   end
 end
 
+function Disp.fmt2arr (arr2)
+  local s = "{"
+  for _, arr in ipairs(arr2) do
+    s = s .. Disp.fmtarr(arr) .. ","
+  end
+  s = s .. "}"
+  return s
+end
+
+function Disp.fmtarr (arr)
+  local s = "{"
+  for _,e in ipairs(arr) do
+    s = s .. e .. ","
+  end
+  s = s .. "}"
+  return s
+end
+
 return Disp 
 
