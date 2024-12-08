@@ -1,7 +1,7 @@
 VecSet = {}
 
 function VecSet:new ()
-  set = {}
+  local set = {}
   setmetatable(set, self)
   self.__index = self
   return set
