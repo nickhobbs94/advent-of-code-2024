@@ -74,31 +74,41 @@ function VecSet.count (set)
   return count
 end
 
-function calcAnti (vec1, vec2)
-  delta = {vec2[1] - vec1[1], vec2[2] - vec1[2]}
-  return {vec1[1] - delta[1], vec1[2] - delta[2]}, {vec2[1] + delta[1], vec2[2] + delta[2]}
-end
-
-
 function inbounds(vec)
   return vec[1] > 0 and vec[1] <= width and vec[2] > 0 and vec[2] <= height
 end
+
+function calcAnti (vec1, vec2)
+  local delta = {vec2[1] - vec1[1], vec2[2] - vec1[2]}
+  local antis = {{vec1[1], vec1[2]}}
+
+  local current = {vec1[1], vec1[2]}
+  while inbounds(current) do
+    current = {current[1] - delta[1], current[2] - delta[2]}
+    antis[#antis + 1] = current
+  end
+
+  local current = {vec1[1], vec1[2]}
+  while inbounds(current) do
+    current = {current[1] + delta[1], current[2] + delta[2]}
+    antis[#antis + 1] = current
+  end
+
+  return antis
+end
+
+
 
 function computeAllAntinodes (antennas)
   local antinodes = VecSet:new()
   for k,ants in pairs(antennas) do
     for i=1,#ants do
       for j=i+1,#ants do
-        local an1, an2 = calcAnti(ants[i], ants[j])
-        if inbounds(an1) then
-          antinodes:add(an1)
-        else
-          print("OOB an1", disp.fmtarr(an1), width, height)
-        end
-        if inbounds(an2) then
-          antinodes:add(an2)
-        else
-          print("OOB an2", disp.fmtarr(an2), width, height)
+        local antis = calcAnti(ants[i], ants[j])
+        for _,an in ipairs(antis) do
+          if inbounds(an) then
+            antinodes:add(an)
+          end
         end
       end
     end
