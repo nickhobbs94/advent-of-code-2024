@@ -29,34 +29,50 @@ function processmap(mapping)
   return s
 end
 
-function update(blocks)
-  local firstblank = 1
-  while blocks[firstblank] >= 0 and firstblank <= #blocks do
-    firstblank = firstblank + 1
+function getFile(blocks, id, after)
+  local start = after or 1
+  while blocks[start] ~= id and start <= #blocks do
+    start = start + 1
   end
 
-  if firstblank > #blocks then
-    return blocks, true
+  if start > #blocks then
+    return nil
   end
 
-  local lastnum = #blocks
-  while blocks[lastnum] < 0 and lastnum > 0 do
-    lastnum = lastnum - 1
+  local finish = start + 1
+  while blocks[finish] == id do
+    finish = finish + 1
   end
+  return start, finish - 1
+end
 
-  if lastnum == 0 then
-    print("UM!")
-    return blocks, true
+function moveRange(blocks, from, to, len)
+  for i=0,len do
+    blocks[to + i] = blocks[from + i]
+    blocks[from + i] = -1
   end
+end
 
-  if firstblank > lastnum then
-    -- all done!
-    return blocks, true
+function findblankspace(blocks, len)
+  local after = 1
+  local blankstart,blankfinish = getFile(blocks, -1, after)
+
+  while blankstart ~= nil and blankfinish - blankstart < len do
+    after = blankfinish + 1
+    blankstart, blankfinish = getFile(blocks, -1, after)
   end
+  return blankstart
+end
 
-  blocks[firstblank] = blocks[lastnum]
-  blocks[lastnum] = -1
-  return blocks, false
+function update(blocks, id)
+  local start, finish = getFile(blocks, id)
+  local empty = findblankspace(blocks, finish - start)
+  if empty and empty < start then
+    moveRange(blocks, start, empty, finish - start)
+  end
+  print(id, start, finish, empty)
+
+  return blocks
 end
 
 function printblocks(blocks)
@@ -73,15 +89,22 @@ end
 
 blocks = processmap(data)
 
-print(fmtarr(blocks))
+function maxfileid(blocks)
+  local max = -1
+  for _,v in ipairs(blocks) do
+    max = max < v and v or max
+  end
+  return max
+end
 
 printblocks(blocks)
-blocks, done = update(blocks)
-printblocks(blocks)
 
-while not done do
-  blocks, done = update(blocks)
+fileid = maxfileid(blocks)
+
+while fileid >= 0 do
+  blocks, done = update(blocks, fileid)
   --printblocks(blocks)
+  fileid = fileid - 1
 end
 
 function checksum(blocks)
