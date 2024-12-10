@@ -5,6 +5,7 @@ function Stream.map (arr, fn)
   for i,k in ipairs(arr) do
     newarr[i] = fn(i,k)
   end
+  return newarr
 end
 
 function Stream.reduce (arr, fn, initial)
@@ -12,6 +13,7 @@ function Stream.reduce (arr, fn, initial)
   for i,k in ipairs(arr) do
     acc = fn(acc, i, k)
   end
+  return acc
 end
 
 return Stream
