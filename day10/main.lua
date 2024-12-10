@@ -2,7 +2,7 @@
 
 filename = arg[1] or "testdata.txt"
 
-debug = true
+debug = false
 
 local lib = require"advent"
 local fmt = lib.disp.fmt2arr
@@ -52,40 +52,29 @@ function copy (tab)
   return result
 end
 
-
-function scorehead (trailhead)
-  local current = 0
-  local previous = VecSet:new()
-  previous:add(trailhead)
-  local next = VecSet:new()
-  local final = VecSet:new()
-  while current <= 9 do
-    if debug then print(previous) end
-    current = current + 1
-    for from in previous:iter() do
-      for _,n in ipairs(neighbours(from[1], from[2])) do
-        if inbounds(n[1], n[2]) and data[n[2]][n[1]] == current then
-          if current == 9 then
-            final:add(n)
-          else
-            next:add(n)
-          end
-        end
+function countends (loc)
+  local next = data[loc[2]][loc[1]] + 1
+  local count = 0
+  for _,n in ipairs(neighbours(loc[1], loc[2])) do
+    if inbounds(n[1], n[2]) and data[n[2]][n[1]] == next then
+      if next == 9 then
+        count = count + 1
+      else
+        count = count + countends(n)
       end
     end
-    previous = next
-    next = VecSet:new()
   end
-  return final:count()
+  return count
 end
 
-sum = 0
-for _,head in ipairs(trailheads) do
-  local score = scorehead(head)
-  print(score)
-  sum = sum + score
+total = 0
+for _,s in ipairs(trailheads) do
+  local rating = countends(s)
+  print(rating)
+  total = total + rating
 end
-print(sum)
+
+print(total)
 
 
 
