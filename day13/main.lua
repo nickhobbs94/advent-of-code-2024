@@ -27,7 +27,8 @@ while not done do
   _ = line()
   if buttonA == nil then
     done = true
-    print(cost)
+    x=string.format("Final cost: %d",cost)
+    print(x)
     return
   end
   print(buttonA, buttonB, prize)
@@ -35,6 +36,10 @@ while not done do
   bX,bY = parser(buttonB, "Button B: X%+(%d+), Y%+(%d+)")
   pX,pY = parser(prize, "Prize: X=(%d+), Y=(%d+)")
   print(aX,aY,bX,bY,pX,pY)
+
+  -- add 10000000000000 for part 2
+  pX = pX + 10000000000000
+  pY = pY + 10000000000000
 
   -- pX = aX * nA + bX * nB
   -- pY = aY * nA + bY * nB
@@ -45,14 +50,14 @@ while not done do
   --
   -- determinant must be nonzero to be invertible (in the reals)
   local determinant = aX * bY - bX * aY
-  print(determinant)
+  print("det", determinant)
   if determinant ~= 0 then
     nA = (bY * pX - bX * pY) / determinant
     nB = (-aY * pX + aX * pY) / determinant
 
     if isint(nA) and isint(nB) then
       local costdelta = 3*nA + nB
-      print(costdelta)
+      print("costdelta", costdelta)
       cost = cost + costdelta
     else
       print(nA, nB, "not ints")
