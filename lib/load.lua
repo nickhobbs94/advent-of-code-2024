@@ -1,6 +1,6 @@
 Load = {}
 
-local function parse(instring, pattern, opts)
+function Load.parse(instring, pattern, opts)
   local codes = {}
   for s in instring:gmatch(pattern) do
     if opts.tonum then
@@ -13,12 +13,13 @@ local function parse(instring, pattern, opts)
   return codes
 end
 
+
 function Load.load (filename, linepattern, opts)
   opts = opts or {}
   local input = io.open(filename, "r")
   local result = {}
   for line in input:lines() do
-    result[#result + 1] = parse(line, linepattern, opts)
+    result[#result + 1] = Load.parse(line, linepattern, opts)
   end
   return result
 end
