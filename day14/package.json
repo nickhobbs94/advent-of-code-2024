@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "dependencies": {
+    "keypress-promises": "^0.3.0"
+  }
+}
