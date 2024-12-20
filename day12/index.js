@@ -16,6 +16,11 @@ function insideShape(x,y,letter) {
   return x >= 0 && y >= 0 && x < width && y < height && grid[y][x] === letter;
 }
 
+
+function floodfill(start, inside, ) {
+
+}
+
 function hasDirectedBoundary(x,y,dirX,dirY) {
   const letter = grid[y][x];
   return !insideShape(x+dirX, y+dirY, letter);

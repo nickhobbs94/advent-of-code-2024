@@ -1,18 +1,9 @@
 #!/usr/bin/env lua
 
-local filename = arg[1] or "testdata.txt"
-
 local lib = require"advent"
 local fmt = lib.disp.fmt2arr
 local fmtarr = lib.disp.fmtarr
 local VecSet = lib.VecSet
-
-function parser (inputLine, pattern)
-  local x,y = inputLine:match(pattern)
-  return tonumber(x), tonumber(y)
-end
-
-local input = io.open(filename, "r")
 
 function adv (machine)
   local numerator = machine.a
@@ -111,21 +102,49 @@ function state.literal (self)
 end
 
 function printState (machine)
+  print("--------------------------------------------------")
+  print("iter:", machine.iter)
   print("Register A:", machine.a)
   print("Register B:", machine.b)
   print("Register C:", machine.c)
   print("iptr:", machine.iptr)
   print("outs:", print(table.concat(machine.outputs, ",")))
+  print("prog:", print(table.concat(machine.program, ",")))
+  print("--------------------------------------------------")
 end
 
-while not state.halted do
-  printState(state)
+function update (state)
+  --printState(state)
   local instruction = state:instruction()
   if instruction ~= nil then
     instruction(state)
     state:advance()
   else
     state.halted = true
+  end
+end
+
+local maxfound = 0
+for i=1000000,100000000000 do
+  state.a = i
+  state.b = 0
+  state.c = 0
+  state.halted = false
+  state.iptr = 1
+  state.outputs = {}
+  state.iter = i
+  while not state.halted do
+    update(state)
+    if #state.outputs > 0 and state.outputs[#state.outputs] ~= state.program[#state.outputs] then
+      if #state.outputs > maxfound then
+        maxfound = #state.outputs
+        printState(state)
+      end
+      state.halted = true
+    elseif #state.outputs == #state.program then
+      printState(state)
+      return
+    end
   end
 end
 
