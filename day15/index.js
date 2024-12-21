@@ -49,6 +49,7 @@ const map =
 #.O....##.##O.O.OO##.O...O....#...#.OO.....O...O.#
 #OOO.....#...OOO.O..OOO..O...O......#.O...O..##.O#
 ##################################################`
+.replaceAll('#','##').replaceAll('O','[]').replaceAll('.','..').replaceAll('@','@.')
 .split('\n').map(r => r.split(''));
 
 const directions = 
@@ -77,28 +78,63 @@ v^^v<><>^<<vv<><v^v<>^<<vvvv>^v^vv^v^vvv^>v^<^<>v^>^>^v^^v^^v>>v<>^v<^^<>^^^v<><
 const width = map[0].length;
 const height = map.length;
 
-function push(pos, dir) {
+function canpush(pos, dir) {
   
   const [x,y] = pos;
+  console.log('Trying to push', x,y);
 
   if (map[y][x] === '#') return false;
   if (map[y][x] === '.') return true;
 
-  const [dx, dy] = dir;
+  let [dx, dy] = dir;
 
-  const target = [x+dx, y+dy];
+  let targetpushed = true;
+  let dx2 = 0;
+  if (map[y][x] === '[' && dx === 0) {
+    dx2 += 1;
+  } else if (map[y][x] === ']' && dx === 0) {
+    dx2 -= 1;
+  }
 
-  const targetpushed = push(target, dir);
+  targetpushed &= canpush([x+dx,y+dy], dir);
+  if (dx2) targetpushed &= canpush([x+dx+dx2,y+dy], dir);
 
   if (targetpushed) {
-    map[y+dy][x+dx] = map[y][x];
-    map[y][x] = '.';
     console.log('Pushed', x,y);
     return true;
   } else {
     console.log('Blocked', x,y);
     return false;
   }
+}
+
+function push(pos, dir) {
+  
+  const [x,y] = pos;
+
+  if (map[y][x] === '#') return;
+  if (map[y][x] === '.') return;
+
+  let [dx, dy] = dir;
+
+  let dx2 = 0;
+  if (map[y][x] === '[' && dx === 0) {
+    dx2 += 1;
+  } else if (map[y][x] === ']' && dx === 0) {
+    dx2 -= 1;
+  }
+  
+  push([x+dx,y+dy], dir);
+  if (dx2) push([x+dx+dx2,y+dy], dir);
+
+  map[y+dy][x+dx] = map[y][x];
+  map[y][x] = '.';
+  
+  if (dx2) {
+    map[y+dy][x+dx+dx2] = map[y][x+dx2];
+    map[y][x+dx2] = '.';
+  }
+
 }
 
 
@@ -115,7 +151,7 @@ while (directions.length) {
   console.log(dir);
 
   const bot = [map.find(row => row.find(e => e === '@')).findIndex(e => e === '@'), map.findIndex(row => row.find(e => e === '@'))]
-  push(bot, dir);
+  if (canpush(bot, dir)) push(bot, dir);
 
   console.log(map.map(r => r.join('')).join('\n'))
 }
@@ -123,7 +159,7 @@ while (directions.length) {
 let ans = 0;
 for (let y=0; y<height; y++) {
   for (let x=0; x<width; x++) {
-    if (map[y][x] === 'O') ans += y*100 + x;
+    if (map[y][x] === '[') ans += y*100 + x;
   }
 }
 
