@@ -153,17 +153,10 @@ const findCoords = letter => {
 
 const validNext = ([x2,y2]) => (x2 >= 0 && x2 < width && y2 >= 0 && y2 < height) && maze[y2][x2] !== '#';
 
-const neighbours = (x,y) => [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]
-  .filter(validNext);
-
 const directions = [[1,0],[0,1],[-1,0],[0,-1]];
 const turn = dir => {
   const i = directions.findIndex(([dx,dy]) => dx === dir[0] && dy === dir[1]);
   return [directions[(i+1)%4], directions[(i-1+4)%4]];
-}
-const reverse = dir => {
-  const i = directions.findIndex(([dx,dy]) => dx === dir[0] && dy === dir[1]);
-  return directions[(i+2)%4];
 }
 
 const start = findCoords('S');
@@ -188,8 +181,8 @@ while (!found) {
   const {pos, cost, dir} = positions.pop();
 
   console.log("Visit", pos, cost, dir);
-  if (!costs[pos] || costs[pos] > cost) {
-    costs[pos] = cost;
+  if (!costs[`${pos},${dir}`] || costs[`${pos},${dir}`] > cost) {
+    costs[`${pos},${dir}`] = cost;
   } else {
     continue;
   }
@@ -225,6 +218,7 @@ while (!found) {
 
   if (pos[0] === end[0] && pos[1] === end[1]) {
     found = true;
+    console.log(cost);
     break;
   }
 }
