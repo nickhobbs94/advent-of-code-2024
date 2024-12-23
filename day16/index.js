@@ -167,10 +167,12 @@ const costs = {};
 const nextBranches = [];
 
 let found = false;
-let positions = [{pos: start, cost: 0, dir: startDir}];
+let positions = [{pos: start, cost: 0, dir: startDir, previous: null}];
 const nextup = {};
+const paths = {};
 let dir = startDir;
 let targetcost = 0;
+let final = null;
 while (!found) {
   
   while (!positions?.length) {
@@ -178,12 +180,20 @@ while (!found) {
     targetcost++;
   }
 
-  const {pos, cost, dir} = positions.pop();
+  const {pos, cost, dir, previous} = positions.pop();
+
+  const lookupKey = `${pos},${dir}`;
+  const newPrev = `${lookupKey},${cost}`;
 
   console.log("Visit", pos, cost, dir);
-  if (!costs[`${pos},${dir}`] || costs[`${pos},${dir}`] > cost) {
-    costs[`${pos},${dir}`] = cost;
+
+  if (!costs[lookupKey] || costs[lookupKey] > cost) {
+    costs[lookupKey] = cost;
+    paths[newPrev] ??= [];
+    paths[newPrev].push(previous);
   } else {
+    paths[newPrev] ??= [];
+    paths[newPrev].push(previous);
     continue;
   }
 
@@ -191,35 +201,64 @@ while (!found) {
   const fw = [pos[0] + dir[0], pos[1] + dir[1]];
   if (validNext(fw)) {
     nextup[cost+1] ??= [];
-    nextup[cost+1].push({pos: fw, cost: cost+1, dir});
+    nextup[cost+1].push({pos: fw, cost: cost+1, dir, previous: newPrev});
   }
 
   // turning!!
   const [dir1, dir2] = turn(dir);
   const pos1 = [pos[0] + dir1[0], pos[1] + dir1[1]];
   if (validNext(pos1)) {
-    nextup[cost+1001] ??= [];
-    nextup[cost+1001].push({pos: pos1, cost: cost + 1001, dir: dir1});
+    nextup[cost+1000] ??= [];
+    nextup[cost+1000].push({pos, cost: cost + 1000, dir: dir1, previous: newPrev});
+    if (pos[0] === 3 && pos[1] === 11) console.log(nextup[cost+1000]);
   }
 
   const pos2 = [pos[0] + dir2[0], pos[1] + dir2[1]];
   if (validNext(pos2)) {
-    nextup[cost+1001] ??= [];
-    nextup[cost+1001].push({pos: pos2, cost: cost + 1001, dir: dir2});
+    nextup[cost+1000] ??= [];
+    nextup[cost+1000].push({pos, cost: cost + 1000, dir: dir2, previous: newPrev});
+    if (pos[0] === 3 && pos[1] === 11) console.log(nextup[cost+1000]);
   }
-
-  // const dir3 = reverse(dir);
-  // const pos3 = [pos[0] + dir3[0], pos[1] + dir3[1]];
-  // if (validNext(pos3)) {
-  //   nextup[cost+2001] ??= [];
-  //   nextup[cost+2001].push({pos: pos3, cost: cost + 2001, dir: dir3});
-  // }
-
 
   if (pos[0] === end[0] && pos[1] === end[1]) {
     found = true;
-    console.log(cost);
+    final = newPrev;
+    console.log(cost, lookupKey);
     break;
   }
 }
 
+const optimal = {};
+
+
+console.log(final);
+let previouslegs = paths[final];
+let counter = 1;
+while (previouslegs?.length) {
+  // console.log(previouslegs);
+
+  for (let leg of previouslegs) {
+    optimal[leg.match(/(\d+),(\d+)/)[0]] = true;
+  }
+
+  previouslegs = previouslegs.flatMap(leg => {
+    console.log("Found ", leg, paths[leg]);
+    return paths[leg]
+  }).filter(v => !!v);
+  counter++;
+}
+
+let s='';
+for (let y=0; y<height; y++) {
+  for (let x=0; x<width; x++) {
+    if (optimal[[x,y]]) {
+      s += 'O';
+    } else {
+      s += maze[y][x];
+    }
+  }
+  s += '\n';
+}
+
+console.log(s);
+console.log(Object.values(optimal).filter(x => !!x).length + 1);
