@@ -3452,7 +3452,8 @@ const drops =
 .split('\n').map(row => row.split(',').map(e => parseInt(e)));
 
 const width = 71; const height = 71;
-const dropcount = 1024;
+console.log("drops.length", drops.length)
+const dropcount = 3011;
 
 const maze = []
 for (let y=0; y<height; y++) {for (let x=0; x<width; x++) {maze[y] ??= []; maze[y].push('.')}}
@@ -3460,6 +3461,7 @@ for (let y=0; y<height; y++) {for (let x=0; x<width; x++) {maze[y] ??= []; maze[
 for (let i=0; i<dropcount; i++) {
   const [x,y] = drops[i];
   maze[y][x] = '#';
+  console.log("BLOCKED", [x,y])
 }
 
 console.log(maze.map(row => row.join('')).join('\n'));
@@ -3469,58 +3471,64 @@ const validNext = ([x2,y2]) => (x2 >= 0 && x2 < width && y2 >= 0 && y2 < height)
 const start = [0,0];
 const end = [width-1, height-1];
 
-const costs = {};
-const nextBranches = [];
 
-let found = false;
-let positions = [{pos: start, cost: 0, previous: null}];
-let final = null;
-while (!found && positions.length) {
 
-  const {pos, cost, previous} = positions.pop();
+function solve() {
+  const costs = {};
+  let positions = [{pos: start, cost: 0, previous: null}];
+  while (positions.length) {
 
-  const lookupKey = `${pos}`;
-  const newPrev = `${lookupKey},${cost}`;
-
-  console.log("Visit", pos, cost);
-
-  if (!costs[lookupKey] || costs[lookupKey] > cost) {
-    costs[lookupKey] = cost;
-  } else {
-    continue;
-  }
-
-  const [x,y] = pos;
-
-  // EAST!
-  if (validNext([x+1, y])) {
-    positions.push({pos: [x+1, y], cost: cost+1, previous: newPrev});
-  }
-
-  // SOUTH!
-  if (validNext([x, y+1])) {
-    positions.push({pos: [x, y+1], cost: cost+1, previous: newPrev});
-  }
-
-  // WEST!
-  if (validNext([x-1, y])) {
-    positions.push({pos: [x-1, y], cost: cost+1, previous: newPrev});
-  }
-  // NORTH!
-  if (validNext([x, y-1])) {
-    positions.push({pos: [x, y-1], cost: cost+1, previous: newPrev});
-  }
-
-  // FOUND IT!
-  if (x === end[0] && y === end[1] && (final === null || final > cost)) {
-    // found = true;
-    final = cost;
-    // break;
+    const {pos, cost} = positions.pop();
+  
+    const lookupKey = `${pos}`;
+  
+    // console.log("Visit", pos, cost);
+  
+    if (!costs[lookupKey] || costs[lookupKey] > cost) {
+      costs[lookupKey] = cost;
+    } else {
+      continue;
+    }
+  
+    const [x,y] = pos;
+  
+    // EAST!
+    if (validNext([x+1, y])) {
+      positions.push({pos: [x+1, y], cost: cost+1});
+    }
+  
+    // SOUTH!
+    if (validNext([x, y+1])) {
+      positions.push({pos: [x, y+1], cost: cost+1});
+    }
+  
+    // WEST!
+    if (validNext([x-1, y])) {
+      positions.push({pos: [x-1, y], cost: cost+1});
+    }
+    // NORTH!
+    if (validNext([x, y-1])) {
+      positions.push({pos: [x, y-1], cost: cost+1});
+    }
+  
+    // FOUND IT!
+    if (x === end[0] && y === end[1]) {
+      return cost;
+    }
   }
 }
+
+let currentDropCount = dropcount;
+
+const final = solve();
+console.log(final);
+
 
 const optimal = {};
 
 
-console.log(final);
+console.log(final, currentDropCount);
 
+console.log(drops[3011])
+console.log(drops[3010])
+console.log(drops[3009])
