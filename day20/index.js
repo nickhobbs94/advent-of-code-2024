@@ -247,7 +247,7 @@ for (let y=0; y<height; y++) {
       const newcost = base + distance;
       const delta = costs[e] - newcost;
       // console.log(x,y,base,x1,y1,distance,delta);
-      return distance < 20 ? delta : 0;
+      return distance <= 20 ? delta : 0;
     }).filter(v => v > 0);
 
     for (let sc of shortcuts) {
@@ -260,6 +260,7 @@ for (let y=0; y<height; y++) {
 
 
 console.log("XXXXXXXXXXXX")
+
 // for (const [k,v] of Object.entries(savings).filter(([a,b]) => a >= 50).sort(([a], [b]) => a-b)) {
 //   console.log(k,v);
 // }
