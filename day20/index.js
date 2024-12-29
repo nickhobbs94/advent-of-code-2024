@@ -158,7 +158,7 @@ const maze_real =
 #############################################################################################################################################`
 
 
-const maze = maze_test.split('\n').map(row => row.split(''));
+const maze = maze_real.split('\n').map(row => row.split(''));
 
 const height = maze.length; const width = maze[0].length;
 
@@ -189,20 +189,16 @@ const printPos = (spots, symbol) => {
   }
 }
 
-// This is a mess now but I'm not cleaning it up
-
 function solve() {
   const costs = {};
-  let priorityPositions = [{pos: start, cost: 0, phased: null, remainingPhased: -1, exiting: false}];
-  let positions = [];
-  let savings = {};
+  let positions = [{pos: start, cost: 0}];
   let baseCost;
 
-  while (positions.length || priorityPositions.length) {
+  while (positions.length) {
 
-    const {pos, cost, phased, remainingPhased, exiting} = priorityPositions.length ? priorityPositions.pop() : positions.pop();
+    const {pos, cost} = positions.pop();
   
-    const lookupKey = `${pos}|${phased}|${exiting}`;
+    const lookupKey = `${pos}`;
     const [x,y] = pos;
 
     if (costs[lookupKey] === undefined || costs[lookupKey] > cost) {
@@ -211,40 +207,22 @@ function solve() {
       continue;
     }
 
-    const pushNext = (vec, newcost, phased, delta) => {
-      const original = vec;
-      const inWall = maze[vec[1]][vec[0]] === '#';
+    const pushNext = (vec, newcost, delta) => {
       vec = [vec[0] + delta[0], vec[1] + delta[1]]
-      if (!phased) {
-        if (validNext(vec, false)) {
-          priorityPositions.push({pos: vec, cost: newcost, phased: null, remainingPhased, exiting: false})
-        } else if (validNext(vec, true)) {
-          // positions.push({pos: vec, cost: newcost, phased: original, remainingPhased: 20, exiting: false});
-        }
-      } else if (validNext(vec, false) && remainingPhased >= 0) {
-        // positions.push({pos: vec, cost: newcost, phased, remainingPhased: remainingPhased-1, exiting: inWall});
-      } else if (validNext(vec, true) && remainingPhased >= 0) {
-        // positions.push({pos: vec, cost: newcost, phased, remainingPhased: remainingPhased-1, exiting: false});
-      } else if (validNext(vec, false) && remainingPhased == 0) {
-        // positions.push({pos: vec, cost: newcost, phased, remainingPhased: -1});
+      if (validNext(vec, false)) {
+        positions.push({pos: vec, cost: newcost})
       }
     }
 
-    pushNext([x,y], cost+1, phased, [1,0]);
-    pushNext([x,y], cost+1, phased, [-1,0]);
-    pushNext([x,y], cost+1, phased, [0,1]);
-    pushNext([x,y], cost+1, phased, [0,-1]);
+    pushNext([x,y], cost+1, [1,0]);
+    pushNext([x,y], cost+1, [-1,0]);
+    pushNext([x,y], cost+1, [0,1]);
+    pushNext([x,y], cost+1, [0,-1]);
   
     // FOUND IT!
     if (x === end[0] && y === end[1]) {
-      if (!phased) {
-        baseCost ??= cost;
-        baseCost = Math.min(baseCost, cost);
-      }
-
-      if (phased) {
-        //throw new Error("OH NO");
-      }
+      baseCost ??= cost;
+      baseCost = Math.min(baseCost, cost);
     }
   }
   return {costs};
@@ -252,49 +230,23 @@ function solve() {
 
 const {costs} = solve();
 
-
-
-const results = Object.entries(costs).map(([k,v]) => {
-  const [end,start,exiting] = k.split('|');
-  return {
-    end: end.split(',').map(e => parseInt(e)),
-    start: start !== 'null' ? start.split(',').map(e => parseInt(e)) : null,
-    exiting: exiting === 'true',
-    cost: v,
-  };
-});
-
-const baseCosts = results.filter(e => e.start === null);
-const answer = results.filter(e => e.start !== null && e.exiting === true)
-  .filter(e => {
-    const [x1,y1] = e.start;
-    const [x2,y2] = e.end;
-    return x1 !== x2 || y1 !== y2;
-  })
-  .map(e => {
-    const [x1,y1] = e.start;
-    const [x2,y2] = e.end;
-
-    const base = baseCosts.find(b => b.end[0] === x2 && b.end[1] === y2).cost;
-    return {...e, delta: base - e.cost};
-  })
-  .filter(e => e.delta === 72)
-
-
+// console.log(costs);
 
 
 const savings = {};
 for (let y=0; y<height; y++) {
   for (let x=0; x<width; x++) {
 
-    const base = baseCosts.find(bc => bc.end[0] === x && bc.end[1] === y);
-    if (!base) continue;
-    // console.log(base);
+    const base = costs[`${x},${y}`];
+    if (base === undefined) continue;
 
-    const shortcuts = baseCosts.map(e => {
-      const distance = Math.abs(x - e.end[0]) + Math.abs(y - e.end[1]);
-      const newcost = base.cost + distance;
-      const delta = e.cost - newcost;
+    const shortcuts = Object.keys(costs).map(e => {
+      const [x1,y1] = e.split(',').map(i => parseInt(i));
+      
+      const distance = Math.abs(x - x1) + Math.abs(y - y1);
+      const newcost = base + distance;
+      const delta = costs[e] - newcost;
+      // console.log(x,y,base,x1,y1,distance,delta);
       return distance < 20 ? delta : 0;
     }).filter(v => v > 0);
 
@@ -307,9 +259,10 @@ for (let y=0; y<height; y++) {
 
 
 
-for (const [k,v] of Object.entries(savings).sort(([a], [b]) => a-b)) {
-  console.log(k,v);
-}
+console.log("XXXXXXXXXXXX")
+// for (const [k,v] of Object.entries(savings).filter(([a,b]) => a >= 50).sort(([a], [b]) => a-b)) {
+//   console.log(k,v);
+// }
 
 console.log(Object.entries(savings).filter(([k,v]) => k >= 100).reduce((acc,[k,v]) => acc + v, 0));
 
