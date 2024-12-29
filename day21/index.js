@@ -8,7 +8,9 @@ const numericPad = [
 const directionalPad = [
   [' ', '^', 'A'],
   ['<','v', '>'],
-]
+];
+
+const NUM_ROBOTS = 2;
 
 function findCoords(value, grid) {
   for (let y=0; y<grid.length; y++) {
@@ -100,15 +102,14 @@ function shortest(paths, from) {
   console.log('paths', paths)
   for (let path of paths) {
     console.log('path', path);
-    const robot1 = unproject(path, 'directional');
-    if (robot1 === null) continue;
-    console.log('r1', robot1);
-    const robot2 = unproject(robot1, 'directional');
-    if (robot2 === null) continue;
-    console.log('r2', robot2);
-    const robot3 = unproject(robot2, 'numeric', from);
-    if (robot3 === null) continue;
-    console.log('r3', robot3);
+    let robot = path;
+    for (let i=0; i<NUM_ROBOTS; i++) {
+      robot = robot !== null ? unproject(robot, 'directional') : null;
+    }
+
+    if (robot === null) continue;
+
+    robot = unproject(robot, 'numeric', from);
 
     shortest ??= path;
     if (shortest.length > path.length) {
@@ -133,11 +134,9 @@ function solve(inputs) {
 
     let paths = path(prev, next, 'numeric');
 
-    console.log('paths 0', paths);
-    paths = paths.flatMap(path => project(path));
-    console.log('paths 1', paths);
-    paths = paths.flatMap(path => project(path));
-    console.log('paths 2', paths);
+    for (let i=0; i<NUM_ROBOTS; i++) {
+      paths = paths.flatMap(path => project(path));
+    }
 
     result += shortest(paths, prev);
 
@@ -165,4 +164,3 @@ const ans = codes.map(code => [code,solve(code)])
   .reduce((acc,e) => acc + e, 0);
 
 console.log(ans);
-
